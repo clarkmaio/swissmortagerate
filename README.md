@@ -9,4 +9,5 @@ I've written it to prove to my house holder I should receive a rent reduction.
 
 <br><br>
 
-![Swiss Mortage Rate](https://raw.githubusercontent.com/clarkmaio/SwissMortageRate/main/swiss_mortage_rate.PNG)
+<img src = "https://raw.githubusercontent.com/clarkmaio/SwissMortageRate/main/swiss_mortage_rate.PNG" style="width:600px;">
+
