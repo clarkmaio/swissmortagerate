@@ -52,12 +52,8 @@ def columns_format(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-if __name__ == '__main__':
-
-    df = data_loader()
-
-
-    # Simple plot
+def plot_curve(df: pd.DataFrame, save_path: str = None) -> None:
+    '''Simple plot to visualize curves'''
     df_plot = df[['Mortage rate rent reference', 'Average mortage rate']] * 100
 
     plt.plot(df_plot.index, df_plot['Mortage rate rent reference'], color='red', label='Mortage rate rent reference')
@@ -68,3 +64,15 @@ if __name__ == '__main__':
     plt.xlabel('date', fontweight='bold')
     plt.ylabel('%', fontweight='bold')
     plt.grid(linestyle=':')
+    
+    
+    if not pd.isnull(save_path):
+        plt.savefig(save_path)
+        plt.close()
+    
+
+if __name__ == '__main__':
+
+    df = data_loader()
+    plot_curve(df=df)
+    
