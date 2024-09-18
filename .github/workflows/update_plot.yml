@@ -29,7 +29,7 @@ jobs:
       run: |
         git config --local user.email "maioliandrea0@gmail.com"
         git config --local user.name "clarkmaio"
-        git add plot.png
+        git add swiss_mortage_rate.png
         git commit -m "Plot update"
         git push
       env:
