@@ -74,5 +74,5 @@ def plot_curve(df: pd.DataFrame, save_path: str = None) -> None:
 if __name__ == '__main__':
 
     df = data_loader()
-    plot_curve(df=df)
+    plot_curve(df=df, save_path = './swiss_mortage_rate.png')
     
