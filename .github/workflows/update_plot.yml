@@ -2,7 +2,7 @@ name: update_plot
 
 on:
   schedule:
-    - cron: "* * * * *" 
+    - cron: "0 8 1 * *" 
     
 jobs:
   update-plot:
