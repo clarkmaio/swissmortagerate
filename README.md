@@ -19,5 +19,5 @@ plot_curve(df=df)
 ```
 
 <br><br>
-<img src = "https://raw.githubusercontent.com/clarkmaio/SwissMortageRate/main/swiss_mortage_rate.PNG" style="width:600px;">
+<img src = "https://raw.githubusercontent.com/clarkmaio/SwissMortageRate/main/swiss_mortage_rate.png" style="width:600px;">
 
