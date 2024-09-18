@@ -22,7 +22,7 @@ jobs:
         pip install -r requirements.txt
 
     - name: Generate plot
-      run: python create_plot.py  # Nome dello script che genera il plot
+      run: python data_loader.py  # Nome dello script che genera il plot
 
     # Step 5: Commit and push the updated plot.png
     - name: Commit and Push changes
