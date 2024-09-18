@@ -1,0 +1,37 @@
+name: update_plot
+
+on:
+  schedule:
+    - cron: "* * * * *" 
+    
+jobs:
+  update-plot:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Setup Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
+
+    - name: Generate plot
+      run: python create_plot.py  # Nome dello script che genera il plot
+
+    # Step 5: Commit and push the updated plot.png
+    - name: Commit and Push changes
+      run: |
+        git config --local user.email "maioliandrea0@gmail.com"
+        git config --local user.name "clarkmaio"
+        git add plot.png
+        git commit -m "Plot update"
+        git push
+      env:
+        # Imposta il token di autenticazione per il push (già disponibile in GitHub Actions)
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
