@@ -35,7 +35,7 @@ jobs:
         git config --local user.name "clarkmaio"
         git add swiss_mortage_rate.png
         git commit -m "Plot update"
-        git push origin main --force-with-lease
+        git push origin main --force-with-lease || echo "No changes to push"
       env:
         # Imposta il token di autenticazione per il push (già disponibile in GitHub Actions)
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
