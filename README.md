@@ -1,4 +1,4 @@
-# SwissMortageRate
+# swissmortagerate
 This is just a data scraper of Swiss mortage rate.<br>
 Data source is the [federal website](https://www.bwo.admin.ch/bwo/it/home/mietrecht/referenzzinssatz/entwicklung-referenzzinssatz-und-durchschnittszinssatz.html) (**Bundesamt für Wohnungswesen BWO**).
 
@@ -12,9 +12,9 @@ I've written it to prove to my house holder I should receive a rent reduction.
 To download and generate the plot just use the simple functions in `data_loader.py`:
 
 ```
-from data_loader import data_loader, plot_curve
+from data_loader import load_mortagerate, plot_curve
 
-df = data_loader()
+df = load_mortagerate()
 plot_curve(df=df)
 ```
 
