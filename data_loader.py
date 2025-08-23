@@ -3,25 +3,46 @@ from bs4 import BeautifulSoup
 import pandas as pd
 from datetime import datetime
 import matplotlib.pyplot as plt
+import yaml
 
-LINK = 'https://www.bwo.admin.ch/bwo/it/home/mietrecht/referenzzinssatz/entwicklung-referenzzinssatz-und-durchschnittszinssatz.html'
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
+from bs4 import BeautifulSoup
+
+URL = 'https://www.bwo.admin.ch/de/entwicklung-referenzzinssatz-und-durchschnittszinssatz'
+HEADERS = ['Mortage rate rent reference', 'valid from', 'Average mortage rate', 'valuedate']
+
+
+def setup_webdriver():
+    options = webdriver.ChromeOptions()
+    options.add_argument('--headless')
+    options.add_argument('--no-sandbox')
+    options.add_argument('--disable-dev-shm-usage')
+
+    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+    return driver
+
+def columns_format(df: pd.DataFrame) -> pd.DataFrame:
+
+    # Format data
+    df['valid from'] = [pd.to_datetime(d.replace(' ', ''), format='%d.%m.%Y') for d in df['valid from']]
+    df['valuedate'] = [pd.to_datetime(d.replace(' ', ''), format='%d.%m.%Y') for d in df['valuedate']]
+
+    # Format value
+    df['Mortage rate rent reference'] = [ float(x.replace(' ','').replace('*', '').replace('%', '').replace(',', '.'))/100 for x in df['Mortage rate rent reference']]
+    df['Average mortage rate'] = [float(x.replace(' ', '').replace('*', '').replace('%', '').replace(',', '.')) / 100 for x in df['Average mortage rate']]
+    return df
 
 
 
-def data_loader():
+def parse_table(table) -> pd.DataFrame:
+    '''
+    Extract data from html table and return a pandas dataframe
+    '''
 
-    page = requests.get(LINK)
-    soup = BeautifulSoup(page.text, 'lxml')
-    table = soup.find('table')
+    df = pd.DataFrame(columns=HEADERS)
 
-    headers = []
-    for i in table.find_all('th'):
-        title = i.text
-        headers.append(title)
-
-    headers = ['Mortage rate rent reference', 'valid from', 'Average mortage rate', 'valuedate']
-
-    df = pd.DataFrame(columns=headers)
     for j in table.find_all('tr')[1:]:
         row_data = j.find_all('td')
         row = [i.text for i in row_data if i.text != '\xa0']
@@ -40,20 +61,32 @@ def data_loader():
     return df
 
 
-def columns_format(df: pd.DataFrame) -> pd.DataFrame:
+def load_mortagerate():
+    '''
+    Scrape data from offical website and return pandas dataframe.
+    Note: BS not enough since javascript is used to render the table. Using selenium to load the page.
+    '''
 
-    # Format data
-    df['valid from'] = [pd.to_datetime(d.replace(' ', ''), format='%d.%m.%Y') for d in df['valid from']]
-    df['valuedate'] = [pd.to_datetime(d.replace(' ', ''), format='%d.%m.%Y') for d in df['valuedate']]
+    driver = setup_webdriver()
+    driver.get(URL)
 
-    # Format value
-    df['Mortage rate rent reference'] = [ float(x.replace(' ','').replace('*', '').replace('%', '').replace(',', '.'))/100 for x in df['Mortage rate rent reference']]
-    df['Average mortage rate'] = [float(x.replace(' ', '').replace('*', '').replace('%', '').replace(',', '.')) / 100 for x in df['Average mortage rate']]
+    soup = BeautifulSoup(driver.page_source, 'html.parser')
+    table = soup.find('table')
+    driver.quit()
+
+    df = parse_table(table)
     return df
 
 
+
+
 def plot_curve(df: pd.DataFrame, save_path: str = None) -> None:
-    '''Simple plot to visualize curves'''
+    '''
+    Simple plot to visualize curves
+    df must contain columns 'Mortage rate rent reference' and 'Average mortage rate'
+    save_path: if not None, save the plot to the given path
+    '''
+
     df_plot = df[['Mortage rate rent reference', 'Average mortage rate']] * 100
 
     plt.plot(df_plot.index, df_plot['Mortage rate rent reference'], color='red', label='Mortage rate rent reference')
@@ -73,6 +106,19 @@ def plot_curve(df: pd.DataFrame, save_path: str = None) -> None:
 
 if __name__ == '__main__':
 
-    df = data_loader()
+    df = load_mortagerate()
+
+
+
+    # Save output
     plot_curve(df=df, save_path = './swiss_mortage_rate.png')
+    df.to_parquet('./swiss_mortage_rate.parquet')
+    
+    metadata = {
+        'rundate': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        'source': URL,
+    }
+
+    with open('./metadata.yml', 'w') as f:
+        yaml.dump(metadata, f)
     
