@@ -7,8 +7,10 @@ import yaml
 
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
-from bs4 import BeautifulSoup
 
 URL = 'https://www.bwo.admin.ch/de/entwicklung-referenzzinssatz-und-durchschnittszinssatz'
 HEADERS = ['Mortage rate rent reference', 'valid from', 'Average mortage rate', 'valuedate']
@@ -70,9 +72,20 @@ def load_mortagerate():
     driver = setup_webdriver()
     driver.get(URL)
 
+    try:
+        WebDriverWait(driver, 15).until(
+            EC.presence_of_element_located((By.TAG_NAME, 'table'))
+        )
+    except Exception:
+        driver.quit()
+        raise RuntimeError('Timed out waiting for table to load on page')
+
     soup = BeautifulSoup(driver.page_source, 'html.parser')
-    table = soup.find('table')
     driver.quit()
+
+    table = soup.find('table')
+    if table is None:
+        raise RuntimeError('Could not find table in page source')
 
     df = parse_table(table)
     return df
