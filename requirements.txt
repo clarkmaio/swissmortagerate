@@ -70,3 +70,4 @@ fastapi==0.115.0
 uvicorn==0.30.6
 wsproto==1.2.0
 zope.interface==7.2
+pimpmyplot
