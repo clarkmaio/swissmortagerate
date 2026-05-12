@@ -9,13 +9,21 @@ I've written it to prove to my house holder I should receive a rent reduction.
 
 <br>
 
-To download and generate the plot just use the simple functions in `data_loader.py`:
+Use the `SwissMortageRate` class as the main entry point. On construction it
+loads the dataset once (scraping the BWO website by default, or reading a
+local parquet file if `parquet_path` is given) and caches it on the instance.
 
-```
-from data_loader import load_mortagerate, plot_curve
+```python
+from swiss_mortage_rate import SwissMortageRate
 
-df = load_mortagerate()
-plot_curve(df=df)
+smr = SwissMortageRate()
+smr.plot(save_path='./swiss_mortage_rate.png')
+
+# Few useful methods:
+smr.data.head()
+smr.get_rate()
+smr.get_rate('2023-06-01')
+smr.get_change('2025-01-01')
 ```
 
 <br><br>
