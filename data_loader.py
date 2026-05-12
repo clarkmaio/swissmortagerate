@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup
 import pandas as pd
 from datetime import datetime
 import matplotlib.pyplot as plt
+import pimpmyplot as pmp
 import yaml
 
 from selenium import webdriver
@@ -65,8 +66,37 @@ def parse_table(table) -> pd.DataFrame:
 
 def load_mortagerate():
     '''
-    Scrape data from offical website and return pandas dataframe.
-    Note: BS not enough since javascript is used to render the table. Using selenium to load the page.
+    Scrape the Swiss mortgage rate table from the official BWO website and return
+    it as a pandas DataFrame.
+
+    The target page renders the table via JavaScript, so a plain `requests` +
+    BeautifulSoup approach is not sufficient. A headless Chrome browser is
+    started via Selenium to execute the page scripts; once the `<table>` tag is
+    present in the DOM (waited for up to 15 seconds), the rendered HTML is
+    handed off to BeautifulSoup for parsing.
+
+    The raw cells are then cleaned and typed by `parse_table` / `columns_format`:
+        - date columns ('valid from', 'valuedate') are parsed as datetimes
+          using the `dd.mm.yyyy` format used on the page;
+        - rate columns ('Mortage rate rent reference', 'Average mortage rate')
+          are stripped of `%`, `*` and whitespace, comma decimal separators are
+          converted to dots, and the values are divided by 100 so the result is
+          a fraction (e.g. `1.50%` -> `0.015`).
+
+    Returns
+    -------
+    pandas.DataFrame
+        DataFrame indexed by `valuedate` (datetime, sorted ascending) with
+        columns:
+            - 'Mortage rate rent reference' (float, fraction)
+            - 'valid from'                  (datetime)
+            - 'Average mortage rate'        (float, fraction)
+
+    Raises
+    ------
+    RuntimeError
+        If the table does not appear on the page within the timeout, or if no
+        `<table>` element can be found in the rendered HTML.
     '''
 
     driver = setup_webdriver()
@@ -95,22 +125,45 @@ def load_mortagerate():
 
 def plot_curve(df: pd.DataFrame, save_path: str = None) -> None:
     '''
-    Simple plot to visualize curves
-    df must contain columns 'Mortage rate rent reference' and 'Average mortage rate'
-    save_path: if not None, save the plot to the given path
+    Plot the Swiss mortgage rate reference and the average mortgage rate as
+    two time series on the same axes.
+
+    The two rate columns are expected to be stored as fractions (e.g. `0.015`
+    for 1.5%) and are multiplied by 100 internally so the y-axis is in
+    percentage points. The DataFrame index is used as the x-axis and is
+    expected to be the `valuedate` (datetime).
+
+    Styling:
+        - 'Mortage rate rent reference' is drawn in red
+        - 'Average mortage rate'        is drawn in black
+        - dotted grid, bold axis labels, legend, title 'Swiss mortage rate'
+
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        Must contain the columns 'Mortage rate rent reference' and
+        'Average mortage rate'. Typically the output of `load_mortagerate`.
+    save_path : str, optional
+        If provided (and not NaN/None), the figure is written to this path with
+        `plt.savefig` and the figure is closed. If omitted, the figure is left
+        open so the caller can `plt.show()` it or continue customizing it.
+
+    Returns
+    -------
+    None
     '''
 
     df_plot = df[['Mortage rate rent reference', 'Average mortage rate']] * 100
 
     plt.plot(df_plot.index, df_plot['Mortage rate rent reference'], color='red', label='Mortage rate rent reference')
     plt.plot(df_plot.index, df_plot['Average mortage rate'], color='black', label='Average mortage rate')
-    plt.grid(linestyle=':')
-    plt.legend()
-    plt.title('Swiss mortage rate', fontweight='bold')
-    plt.xlabel('date', fontweight='bold')
-    plt.ylabel('%', fontweight='bold')
-    plt.grid(linestyle=':')
     
+    pmp.legend()  
+    pmp.remove_axis('top', 'right')  
+
+    plt.title('Swiss mortage rate', fontweight='bold')
+    plt.ylabel('%', fontweight='bold')
+    plt.tight_layout()
     
     if not pd.isnull(save_path):
         plt.savefig(save_path)
