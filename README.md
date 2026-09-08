@@ -14,10 +14,10 @@ loads the dataset once (scraping the BWO website by default, or reading a
 local parquet file if `parquet_path` is given) and caches it on the instance.
 
 ```python
-from swiss_mortage_rate import SwissMortageRate
+from swissmortagerate import SwissMortageRate
 
 smr = SwissMortageRate()
-smr.plot(save_path='./swiss_mortage_rate.png')
+smr.plot(path='./swiss_mortage_rate.png')
 
 # Few useful methods:
 smr.data.head()

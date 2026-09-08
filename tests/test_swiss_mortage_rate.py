@@ -105,7 +105,7 @@ class TestPlot:
         smr = SwissMortageRate(parquet_path=sample_parquet)
         out = tmp_path / 'curve.png'
 
-        smr.plot(save_path=str(out))
+        smr.plot(path=str(out))
 
         assert out.exists()
         assert out.stat().st_size > 0

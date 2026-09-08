@@ -4,7 +4,8 @@ from typing import Optional, Union
 
 import pandas as pd
 
-from data_loader import load_mortagerate, plot_curve
+from plots import plot_curve
+from scraper import load_mortagerate
 
 
 DateLike = Union[str, date, datetime, pd.Timestamp]
@@ -42,9 +43,15 @@ class SwissMortageRate:
         '''The loaded dataset, indexed by `valuedate`.'''
         return self._data
 
-    def plot(self, save_path: Optional[str] = None) -> None:
-        '''Plot the reference and average mortgage rate curves.'''
-        plot_curve(self._data, save_path=save_path)
+    def plot(self, path: Optional[str] = None) -> None:
+        '''Plot the reference and average mortgage rate curves.
+
+        Parameters
+        ----------
+        path : str, optional
+            If provided, the figure is written to this path.
+        '''
+        plot_curve(self._data, path=path)
 
     def get_rate(self, query_date: Optional[DateLike] = None) -> dict:
         '''
